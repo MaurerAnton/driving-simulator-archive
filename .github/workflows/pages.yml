@@ -26,7 +26,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: The game (the main repository: its tags and its whole history)
+      - name: 'The game (the main repository: its tags and its whole history)'
         uses: actions/checkout@v4
         with:
           repository: MaurerAnton/driving-simulator
