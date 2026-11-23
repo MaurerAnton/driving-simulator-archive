@@ -42,7 +42,7 @@ jobs:
           key: archive-old-versions-${{ hashFiles('tools/old-versions.ts') }}
           restore-keys: archive-old-versions-
       - name: The earlier versions, each on the map of the main site (or its own)
-        run: node tools/old-versions.ts --out dist --cache .old-versions --archive https://maureranton.github.io/driving-simulator-archive/
+        run: 'node tools/old-versions.ts --out dist --cache .old-versions --archive https://maureranton.github.io/driving-simulator-archive/'
       - name: Size of the archive
         run: du -sh dist && du -sh dist/v 2>/dev/null || true
       - uses: actions/configure-pages@v5
