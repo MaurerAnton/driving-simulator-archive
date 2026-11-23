@@ -1,0 +1,60 @@
+name: Earlier versions (archive)
+
+# The earlier versions of the game, played from here.  Each is built from its own tag (or the
+# development commit named in src/game/releases.ts) and takes the map and the signs from the main
+# site by their absolute address – or, for a version that cannot read today's map, brings the map
+# it had (its own public/map, still in the main repository's history).  The main site keeps the map
+# and the newest version; this one keeps all the earlier ones.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1' # (every Monday, so a new release arrives by itself)
+  repository_dispatch:
+    types: [release]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: The game (the main repository: its tags and its whole history)
+        uses: actions/checkout@v4
+        with:
+          repository: MaurerAnton/driving-simulator
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: .old-versions
+          key: archive-old-versions-${{ hashFiles('tools/old-versions.ts') }}
+          restore-keys: archive-old-versions-
+      - name: The earlier versions, each on the map of the main site (or its own)
+        run: node tools/old-versions.ts --out dist --cache .old-versions --archive https://maureranton.github.io/driving-simulator-archive/
+      - name: Size of the archive
+        run: du -sh dist && du -sh dist/v 2>/dev/null || true
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
